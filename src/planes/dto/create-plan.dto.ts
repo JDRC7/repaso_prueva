@@ -2,10 +2,10 @@ import { IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
 
 export class CreatePlanDto {
   @IsString()
-  nombre!: string;
+  nombre?: string;
 
   @IsNumber()
-  precio!: number;
+  precio?: number;
 
   @IsOptional()
   @IsBoolean()

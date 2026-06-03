@@ -2,7 +2,6 @@ import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common'
 import { SociosService } from './socios.service';
 import { CreateSocioDto } from './dto/create-socio.dto';
 import { UpdateSocioDto } from './dto/update-socio.dto';
-
 @Controller('socios')
 export class SociosController {
   constructor(private readonly sociosService: SociosService) {}

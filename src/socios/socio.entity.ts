@@ -4,22 +4,22 @@ import { Plan } from '../planes/plan.entity';
 @Entity('socios')
 export class Socio {
   @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  id!: string; 
 
   @ManyToOne(() => Plan, (plan) => plan.socios, { eager: true, onDelete: 'RESTRICT' })
-  plan!: Plan;
+  plan!: Plan; 
 
   @Column()
-  nombre!: string;
+  nombre!: string; 
 
   @Column({ unique: true })
-  cedula!: string;
+  cedula!: string; 
 
   @Column({ default: 0 })
-  dias_atraso!: number;
+  dias_atraso!: number; 
 
   @Column({ default: true })
-  activo!: boolean;
+  activo!: boolean; 
 
   @CreateDateColumn()
   creado_en!: Date;

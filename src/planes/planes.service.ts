@@ -1,60 +1,52 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Socio } from './socio.entity';
-import { Plan } from '../planes/plan.entity';
-import { CreateSocioDto } from './dto/create-socio.dto';
-import { UpdateSocioDto } from './dto/update-socio.dto';
+import { Plan } from './plan.entity';
+import { CreatePlanDto } from './dto/create-plan.dto';
+import { UpdatePlanDto } from './dto/update-plan.dto';
 
 @Injectable()
-export class SociosService {
+export class PlanesService {
   constructor(
-    @InjectRepository(Socio)
-    private readonly socioRepository: Repository,
-
     @InjectRepository(Plan)
-    private readonly planRepository: Repository,
+    private readonly planRepository: Repository<Plan>,
   ) {}
 
-  async create(createSocioDto: CreateSocioDto) {
-    const plan = await this.planRepository.findOne({ where: { id: createSocioDto.planId } });
-    if (!plan) throw new NotFoundException('Plan no encontrado');
-
-    const socio = this.socioRepository.create({
-      nombre:      createSocioDto.nombre,
-      cedula:      createSocioDto.cedula,
-      dias_atraso: createSocioDto.dias_atraso ?? 0,
-      activo:      createSocioDto.activo ?? true,
-      plan,
-    });
-    return this.socioRepository.save(socio);
+  create(createPlanDto: CreatePlanDto) {
+    const plan = this.planRepository.create(createPlanDto);
+    return this.planRepository.save(plan);
   }
 
   findAll() {
-    return this.socioRepository.find();
+    return this.planRepository.find({ relations: { socios: true } });
   }
 
   async findOne(id: string) {
-    const socio = await this.socioRepository.findOne({ where: { id } });
-    if (!socio) throw new NotFoundException('Socio no encontrado');
-    return socio;
+    const plan = await this.planRepository.findOne({ 
+      where: { id }, 
+      relations: { socios: true } 
+    });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    return plan;
   }
 
-  async update(id: string, updateSocioDto: UpdateSocioDto) {
-    const socio = await this.findOne(id);
-
-    if (updateSocioDto.planId) {
-      const plan = await this.planRepository.findOne({ where: { id: updateSocioDto.planId } });
-      if (!plan) throw new NotFoundException('Plan no encontrado');
-      socio.plan = plan;
-    }
-
-    Object.assign(socio, updateSocioDto);
-    return this.socioRepository.save(socio);
+  async update(id: string, updatePlanDto: UpdatePlanDto) {
+    const plan = await this.findOne(id);
+    Object.assign(plan, updatePlanDto);
+    return this.planRepository.save(plan);
   }
 
   async remove(id: string) {
-    const socio = await this.findOne(id);
-    return this.socioRepository.remove(socio);
+    const plan = await this.planRepository.findOne({ 
+      where: { id }, 
+      relations: { socios: true } 
+    });
+    if (!plan) throw new NotFoundException('Plan no encontrado');
+    
+    if (plan.socios && plan.socios.length > 0) {
+      throw new BadRequestException('No se puede eliminar un plan con socios activos');
+    }
+    
+    return this.planRepository.remove(plan);
   }
 }
